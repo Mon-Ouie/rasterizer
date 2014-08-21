@@ -1,0 +1,10 @@
+AM_CPPFLAGS = -I$(top_srcdir)/include
+
+lib_LIBRARIES = librasterizer.a
+librasterizer_a_SOURCES = src/rasterizer.c
+
+bin_PROGRAMS = rasterizer
+rasterizer_SOURCES = main.c
+rasterizer_LDADD = librasterizer.a
+
+dist_doc_DATA = README.md

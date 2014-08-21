@@ -1,0 +1,9 @@
+AC_INIT([rasterizer], [0.1])
+AM_INIT_AUTOMAKE([-Wall foreign])
+AC_PROG_CC_C99
+AC_PROG_RANLIB
+AM_PROG_AR
+AC_CONFIG_FILES([
+ Makefile
+])
+AC_OUTPUT

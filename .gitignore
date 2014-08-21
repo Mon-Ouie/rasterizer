@@ -1,0 +1,16 @@
+/autom4te.cache
+.deps
+Makefile
+Makefile.in
+/aclocal.m4
+/ar-lib
+/install-sh
+/missing
+/depcomp
+/configure
+/config.log
+/config.status
+/compile
+/rasterizer
+*.a
+*.o
