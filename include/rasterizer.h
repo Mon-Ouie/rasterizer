@@ -8,6 +8,14 @@ typedef struct color {
   uint8_t r, g, b, a;
 } color;
 
+typedef struct vector3 {
+  float x, y, z;
+} vector3;
+
+typedef struct vector2 {
+  float x, y;
+} vector2;
+
 typedef struct texture {
   size_t w, h;
   color *data;
@@ -29,6 +37,18 @@ typedef struct framebuffer {
   color *color_buffer;
   float *depth_buffer;
 } framebuffer;
+
+typedef struct vertex {
+  vector3 pos;
+  vector3 normal;
+  color col;
+  vector2 tex_coord;
+} vertex;
+
+typedef struct vertex_array {
+  size_t n;
+  vertex *data;
+} vertex_array;
 
 /* Textures */
 
@@ -61,5 +81,17 @@ void depthbuffer_read(const framebuffer *fb,
 
 size_t framebuffer_width(const framebuffer *fb);
 size_t framebuffer_height(const framebuffer *fb);
+
+/* Vertex arrays */
+
+int make_vertex_array(vertex_array *array, size_t n, const vertex *data);
+void vertex_array_release(vertex_array *array);
+
+void vertex_array_write(vertex_array *array, size_t i, size_t n,
+                        const vertex *buffer);
+void vertex_array_read(const vertex_array *array, size_t i, size_t n,
+                       vertex *buffer);
+
+size_t vertex_array_size(const vertex_array *array);
 
 #endif
