@@ -16,6 +16,14 @@ typedef struct vector2 {
   float x, y;
 } vector2;
 
+typedef struct mat4 {
+  float data[16];
+} mat4;
+
+typedef struct mat3 {
+  float data[9];
+} mat3;
+
 typedef struct texture {
   size_t w, h;
   color *data;
@@ -93,5 +101,43 @@ void vertex_array_read(const vertex_array *array, size_t i, size_t n,
                        vertex *buffer);
 
 size_t vertex_array_size(const vertex_array *array);
+
+/* Vector algebra */
+
+vector3 vector3_normalize(vector3 v);
+
+float vector3_dot(vector3 a, vector3 b);
+vector3  vector3_cross(vector3 a, vector3 b);
+
+vector3 vector3_sub(vector3 a, vector3 b);
+vector3 vector3_add(vector3 a, vector3 b);
+vector3 vector3_mul(vector3 a, vector3 b);
+
+vector3 vector3_scale(float f, vector3 a);
+
+#define mat3_at(m, x, y) ((m).data[(x)+3*(y)])
+
+mat3 mat3_transposed_inverse(mat3 m);
+
+#define mat4_at(m, x, y) ((m).data[(x)+4*(y)])
+
+#define Mat4Identity \
+  (mat4){            \
+    {1, 0, 0, 0,     \
+     0, 1, 0, 0,     \
+     0, 0, 1, 0,     \
+     0, 0, 0, 1}     \
+  }
+
+mat4 mat4_mul(mat4 a, mat4 b);
+
+mat3 mat4_upper_left_33(mat4 m);
+
+mat4 mat4_translate(vector3 v);
+mat4 mat4_scale(vector3 v);
+mat4 mat4_look_at(vector3 eye, vector3 center, vector3 up);
+mat4 mat4_perspective(float fov, float aspect, float z_near, float z_far);
+
+vector3 mat4_apply(mat4 m, vector3 v);
 
 #endif
