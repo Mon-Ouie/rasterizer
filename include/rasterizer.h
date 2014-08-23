@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 typedef struct color {
   uint8_t r, g, b, a;
@@ -57,6 +58,68 @@ typedef struct vertex_array {
   size_t n;
   vertex *data;
 } vertex_array;
+
+typedef struct light {
+  vector3 pos;
+  color ambient, diffuse, specular;
+} light;
+
+typedef struct material {
+  color ambient, diffuse, specular;
+  float specular_power;
+} material;
+
+typedef enum blend_factor {
+  BlendZero,
+  BlendOne,
+
+  BlendSrcColor,
+  BlendDstColor,
+  BlendOneMinusDstColor,
+  BlendOneMinusSrcColor,
+
+  BlendSrcAlpha,
+  BlendDstAlpha,
+  BlendOneMinusSrcAlpha,
+  BlendOneMinusDstAlpha,
+} blend_factor;
+
+typedef enum depth_func {
+  DepthTestNever,
+  DepthTestAlways,
+
+  DepthTestEQ,
+  DepthTestLT,
+  DepthTestLE,
+  DepthTestGT,
+  DepthTestGE,
+} depth_func;
+
+typedef struct renderer {
+  framebuffer *target;
+
+  texture *tex;
+
+  mat4 model_view;
+  mat4 projection;
+  mat3 normal_matrix;
+
+  material mat;
+
+  size_t light_count;
+  light *lights;
+  light *processed_lights;
+
+  bool lighting;
+
+  blend_factor blend_src;
+  blend_factor blend_dst;
+
+  depth_func depth_func;
+  bool depth_test_flag;
+
+  bool culling;
+} renderer;
 
 /* Textures */
 
@@ -117,6 +180,14 @@ vector3 vector3_scale(float f, vector3 a);
 
 #define mat3_at(m, x, y) ((m).data[(x)+3*(y)])
 
+#define Mat3Identity \
+  (mat3){            \
+    {1, 0, 0,        \
+     0, 1, 0,        \
+     0, 0, 1}        \
+  }
+
+
 mat3 mat3_transposed_inverse(mat3 m);
 
 #define mat4_at(m, x, y) ((m).data[(x)+4*(y)])
@@ -139,5 +210,39 @@ mat4 mat4_look_at(vector3 eye, vector3 center, vector3 up);
 mat4 mat4_perspective(float fov, float aspect, float z_near, float z_far);
 
 vector3 mat4_apply(mat4 m, vector3 v);
+
+/* Renderer state */
+
+void make_renderer(renderer *state, framebuffer *target);
+void release_renderer(renderer *state);
+
+void use_texture(renderer *state, texture *tex);
+texture *current_texture(const renderer *state);
+
+void set_mvp(renderer *state, mat4 model, mat4 view, mat4 projection);
+
+void use_material(renderer *state, material m);
+material current_material(const renderer *state);
+
+int set_lights(renderer *state, size_t n, light *lights);
+void set_light(renderer *state, size_t i, light light);
+light get_light(const renderer *state, size_t i);
+
+void set_lighting(renderer *state, bool on);
+bool get_lighting(const renderer *state);
+
+void set_blend_function(renderer *state,
+                        blend_factor sfactor, blend_factor dfactor);
+void get_blend_function(const renderer *state,
+                        blend_factor *sfactor, blend_factor *dfactor);
+
+void set_depth_func(renderer *state, depth_func f);
+depth_func get_depth_func(const renderer *state);
+
+void set_depth_test(renderer *state, bool on);
+bool get_depth_test(const renderer *state);
+
+void set_culling(renderer *state, bool on);
+bool get_culling(const renderer *state);
 
 #endif
