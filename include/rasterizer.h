@@ -1,3 +1,6 @@
+#ifndef RASTERIZER_H_
+#define RASTERIZER_H_
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -32,3 +35,5 @@ void texture_read(const texture *tex, size_t x, size_t y, size_t w, size_t h,
 
 size_t texture_width(const texture *tex);
 size_t texture_height(const texture *tex);
+
+#endif
