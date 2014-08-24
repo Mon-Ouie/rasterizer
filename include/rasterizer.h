@@ -59,6 +59,11 @@ typedef struct vertex_array {
   vertex *data;
 } vertex_array;
 
+typedef struct index_array {
+  size_t n;
+  uint32_t *data;
+} index_array;
+
 typedef struct light {
   vector3 pos;
   color ambient, diffuse, specular;
@@ -164,6 +169,18 @@ void vertex_array_read(const vertex_array *array, size_t i, size_t n,
                        vertex *buffer);
 
 size_t vertex_array_size(const vertex_array *array);
+
+/* Index arrays */
+
+int make_index_array(index_array *array, size_t n, const uint32_t *data);
+void index_array_release(index_array *array);
+
+void index_array_write(index_array *array, size_t i, size_t n,
+                        const uint32_t *buffer);
+void index_array_read(const index_array *array, size_t i, size_t n,
+                       uint32_t *buffer);
+
+size_t index_array_size(const index_array *array);
 
 /* Vector algebra */
 
