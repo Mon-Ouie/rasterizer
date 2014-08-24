@@ -6,8 +6,6 @@
 static void update_all_lights(renderer *state);
 static void update_light(renderer *state, size_t i);
 
-static color color_mul(color a, color b);
-
 void make_renderer(renderer *state, framebuffer *target) {
   state->target = target;
 
@@ -30,18 +28,19 @@ void make_renderer(renderer *state, framebuffer *target) {
 
   state->lighting = false;
 
-  state->blend_src = BlendSrcAlpha;
-  state->blend_dst = BlendOneMinusSrcAlpha;
-
   state->depth_func = DepthTestLE;
   state->depth_test_flag = false;
 
   state->culling = false;
+
+  state->vertex_count = 0;
+  state->vertices = NULL;
 }
 
 void release_renderer(renderer *state) {
   free(state->lights);
   free(state->processed_lights);
+  free(state->vertices);
 }
 
 void use_texture(renderer *state, texture *tex) {
@@ -84,11 +83,13 @@ int set_lights(renderer *state, size_t n, light *lights) {
   free(state->lights);
   free(state->processed_lights);
 
+  state->light_count = n;
+
   state->lights = buffer;
   state->processed_lights = processed_buffer;
 
   if (lights) {
-    memcpy(state->lights, lights, n * sizeof(*lights));
+    memcpy(state->lights, lights, n * sizeof(light));
     update_all_lights(state);
   }
 
@@ -107,18 +108,6 @@ light get_light(const renderer *state, size_t i) {
 void set_lighting(renderer *state, bool on) { state->lighting = on; }
 bool get_lighting(const renderer *state) { return state->lighting; }
 
-void set_blend_function(renderer *state,
-                        blend_factor sfactor, blend_factor dfactor) {
-  state->blend_src = sfactor;
-  state->blend_dst = dfactor;
-}
-
-void get_blend_function(const renderer *state,
-                        blend_factor *sfactor, blend_factor *dfactor) {
-  *sfactor = state->blend_src;
-  *dfactor = state->blend_dst;
-}
-
 void set_depth_func(renderer *state, depth_func f) { state->depth_func = f; }
 depth_func get_depth_func(const renderer *state) { return state->depth_func; }
 
@@ -135,20 +124,11 @@ static void update_all_lights(renderer *state) {
 
 static void update_light(renderer *state, size_t i) {
   state->processed_lights[i].pos = mat4_apply(
-    state->model_view, state->processed_lights[i].pos);
-  state->processed_lights[i].diffuse = color_mul(
+    state->model_view, state->lights[i].pos);
+  state->processed_lights[i].ambient = color_mul(
     state->mat.diffuse, state->lights[i].ambient);
   state->processed_lights[i].diffuse = color_mul(
     state->mat.diffuse, state->lights[i].diffuse);
   state->processed_lights[i].specular = color_mul(
     state->mat.specular, state->lights[i].specular);
-}
-
-static color color_mul(color a, color b) {
-  return (color){
-    (float)a.r * (float)b.r/255.0,
-    (float)a.g * (float)b.g/255.0,
-    (float)a.b * (float)b.b/255.0,
-    255
-  };
 }

@@ -5,6 +5,14 @@
 
 #define Pi 3.14159265358979323846
 
+vector2 vector2_add(vector2 a, vector2 b) {
+  return (vector2){a.x+b.x, a.y+b.y};
+}
+
+vector2 vector2_scale(float f, vector2 a) {
+  return (vector2){f*a.x, f*a.y};
+}
+
 vector3 vector3_normalize(vector3 v) {
   float norm = sqrtf(v.x*v.x+v.y*v.y+v.z*v.z);
   return (vector3){v.x/norm, v.y/norm, v.z/norm};
@@ -20,6 +28,10 @@ vector3 vector3_cross(vector3 a, vector3 b) {
     a.z*b.x - a.x*b.z,
     a.x*b.y - a.y*b.x
   };
+}
+
+vector3 vector3_reflect(vector3 ray, vector3 n) {
+  return vector3_sub(ray, vector3_scale(2*fmaxf(vector3_dot(ray, n),0), n));
 }
 
 vector3 vector3_sub(vector3 a, vector3 b) {
@@ -72,6 +84,14 @@ mat3 mat3_transposed_inverse(mat3 m) {
   for (size_t i = 0; i < 9; i++) inv.data[i] /= det;
 
   return inv;
+}
+
+vector3 mat3_apply(mat3 m, vector3 v) {
+  return (vector3){
+    v.x*mat3_at(m, 0, 0) + v.y*mat3_at(m, 1, 0) + v.z*mat3_at(m, 2, 0),
+    v.x*mat3_at(m, 0, 1) + v.y*mat3_at(m, 1, 1) + v.z*mat3_at(m, 2, 1),
+    v.x*mat3_at(m, 0, 2) + v.y*mat3_at(m, 1, 2) + v.z*mat3_at(m, 2, 2),
+  };
 }
 
 mat4 mat4_mul(mat4 a, mat4 b) {
@@ -149,5 +169,18 @@ vector3 mat4_apply(mat4 m, vector3 v) {
       mat4_at(m, 3, 1),
     v.x*mat4_at(m, 0, 2) + v.y*mat4_at(m, 1, 2) + v.z*mat4_at(m, 2, 2) +
       mat4_at(m, 3, 2),
+  };
+}
+
+vector4 mat4_project(mat4 m, vector3 v) {
+  return (vector4){
+    v.x*mat4_at(m, 0, 0) + v.y*mat4_at(m, 1, 0) + v.z*mat4_at(m, 2, 0) +
+      mat4_at(m, 3, 0),
+    v.x*mat4_at(m, 0, 1) + v.y*mat4_at(m, 1, 1) + v.z*mat4_at(m, 2, 1) +
+      mat4_at(m, 3, 1),
+    v.x*mat4_at(m, 0, 2) + v.y*mat4_at(m, 1, 2) + v.z*mat4_at(m, 2, 2) +
+      mat4_at(m, 3, 2),
+    v.x*mat4_at(m, 0, 3) + v.y*mat4_at(m, 1, 3) + v.z*mat4_at(m, 2, 3) +
+      mat4_at(m, 3, 3),
   };
 }

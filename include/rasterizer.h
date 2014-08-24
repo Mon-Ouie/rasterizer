@@ -9,6 +9,10 @@ typedef struct color {
   uint8_t r, g, b, a;
 } color;
 
+typedef struct vector4 {
+  float x, y, z, w;
+} vector4;
+
 typedef struct vector3 {
   float x, y, z;
 } vector3;
@@ -54,6 +58,18 @@ typedef struct vertex {
   vector2 tex_coord;
 } vertex;
 
+typedef struct processed_vertex {
+  bool done;
+
+  vector3 eye;
+  vector3 normal;
+
+  vector2 tex_coord;
+  color base_color;
+
+  vector3 frag_pos;
+} processed_vertex;
+
 typedef struct vertex_array {
   size_t n;
   vertex *data;
@@ -73,21 +89,6 @@ typedef struct material {
   color ambient, diffuse, specular;
   float specular_power;
 } material;
-
-typedef enum blend_factor {
-  BlendZero,
-  BlendOne,
-
-  BlendSrcColor,
-  BlendDstColor,
-  BlendOneMinusDstColor,
-  BlendOneMinusSrcColor,
-
-  BlendSrcAlpha,
-  BlendDstAlpha,
-  BlendOneMinusSrcAlpha,
-  BlendOneMinusDstAlpha,
-} blend_factor;
 
 typedef enum depth_func {
   DepthTestNever,
@@ -117,14 +118,20 @@ typedef struct renderer {
 
   bool lighting;
 
-  blend_factor blend_src;
-  blend_factor blend_dst;
-
   depth_func depth_func;
   bool depth_test_flag;
 
   bool culling;
+
+  size_t vertex_count;
+  processed_vertex *vertices;
 } renderer;
+
+typedef enum draw_mode {
+  DrawTriangleStrip,
+  DrawTriangleFan,
+  DrawTriangles,
+} draw_mode;
 
 /* Textures */
 
@@ -182,12 +189,23 @@ void index_array_read(const index_array *array, size_t i, size_t n,
 
 size_t index_array_size(const index_array *array);
 
+/* Colors */
+
+color color_mul(color a, color b);
+color color_add(color a, color b);
+color color_scale(float f, color a);
+
 /* Vector algebra */
+
+vector2 vector2_add(vector2 a, vector2 b);
+vector2 vector2_scale(float f, vector2 a);
 
 vector3 vector3_normalize(vector3 v);
 
 float vector3_dot(vector3 a, vector3 b);
 vector3  vector3_cross(vector3 a, vector3 b);
+
+vector3 vector3_reflect(vector3 ray, vector3 n);
 
 vector3 vector3_sub(vector3 a, vector3 b);
 vector3 vector3_add(vector3 a, vector3 b);
@@ -206,6 +224,7 @@ vector3 vector3_scale(float f, vector3 a);
 
 
 mat3 mat3_transposed_inverse(mat3 m);
+vector3 mat3_apply(mat3 m, vector3 v);
 
 #define mat4_at(m, x, y) ((m).data[(x)+4*(y)])
 
@@ -227,6 +246,7 @@ mat4 mat4_look_at(vector3 eye, vector3 center, vector3 up);
 mat4 mat4_perspective(float fov, float aspect, float z_near, float z_far);
 
 vector3 mat4_apply(mat4 m, vector3 v);
+vector4 mat4_project(mat4 m, vector3 v);
 
 /* Renderer state */
 
@@ -248,11 +268,6 @@ light get_light(const renderer *state, size_t i);
 void set_lighting(renderer *state, bool on);
 bool get_lighting(const renderer *state);
 
-void set_blend_function(renderer *state,
-                        blend_factor sfactor, blend_factor dfactor);
-void get_blend_function(const renderer *state,
-                        blend_factor *sfactor, blend_factor *dfactor);
-
 void set_depth_func(renderer *state, depth_func f);
 depth_func get_depth_func(const renderer *state);
 
@@ -261,5 +276,13 @@ bool get_depth_test(const renderer *state);
 
 void set_culling(renderer *state, bool on);
 bool get_culling(const renderer *state);
+
+/* Drawing */
+
+int draw_array(renderer *state, draw_mode mode,
+               vertex_array *array, size_t i, size_t n);
+int draw_elements(renderer *state, draw_mode mode,
+                  index_array *indices, vertex_array *array,
+                  size_t i, size_t n);
 
 #endif
