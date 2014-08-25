@@ -68,6 +68,7 @@ typedef struct processed_vertex {
   color base_color;
 
   vector3 frag_pos;
+  float w;
 } processed_vertex;
 
 typedef struct vertex_array {

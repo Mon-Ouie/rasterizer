@@ -29,11 +29,11 @@ static processed_vertex interpolate(processed_vertex a, processed_vertex b,
                                     processed_vertex c,
                                     vector3 coord);
 static vector3 interpolate_vector3(vector3 a, vector3 b, vector3 c,
-                                   vector3 coord);
+                                   float wfactor, vector3 coord);
 static vector2 interpolate_vector2(vector2 a, vector2 b, vector2 c,
-                                   vector3 coord);
+                                   float wfactor, vector3 coord);
 static color interpolate_color(color a, color b, color c,
-                               vector3 coord);
+                               float wfactor, vector3 coord);
 
 static void draw_fragment(renderer *state, processed_vertex v,
                           screen_pos p);
@@ -166,6 +166,7 @@ static processed_vertex process_vertex(renderer *state, vertex v) {
   vector4 projected = mat4_project(state->projection, pos_to_eye);
   out.frag_pos = (vector3){projected.x/projected.w, projected.y/projected.w,
                            projected.z/projected.w};
+  out.w = projected.w;
 
   return out;
 }
@@ -298,44 +299,51 @@ static processed_vertex interpolate(processed_vertex a, processed_vertex b,
                                     processed_vertex c,
                                     vector3 coord) {
   processed_vertex out;
-  out.eye = interpolate_vector3(a.eye, b.eye, c.eye, coord);
-  out.normal = interpolate_vector3(a.normal, b.normal, c.normal, coord);
+
+  out.frag_pos = interpolate_vector3(a.frag_pos, b.frag_pos, c.frag_pos,
+                                     1.0, coord);
+
+  float wfactor = coord.x/a.w + coord.y/b.w + coord.z/c.w;
+  coord.x /= a.w;
+  coord.y /= b.w;
+  coord.z /= c.w;
+
+  out.eye = interpolate_vector3(a.eye, b.eye, c.eye, wfactor, coord);
+  out.normal = interpolate_vector3(a.normal, b.normal, c.normal, wfactor,
+                                   coord);
 
   out.tex_coord = interpolate_vector2(a.tex_coord, b.tex_coord, c.tex_coord,
-                                      coord);
+                                      wfactor, coord);
   out.base_color = interpolate_color(a.base_color, b.base_color, c.base_color,
-                                     coord);
-
-  out.frag_pos = interpolate_vector3(a.frag_pos, b.frag_pos, c.frag_pos, coord);
+                                     wfactor, coord);
 
   return out;
 }
 
 static vector3 interpolate_vector3(vector3 a, vector3 b, vector3 c,
-                                   vector3 coord) {
-  return vector3_add(
-    vector3_scale(coord.x, a),
-    vector3_add(
-      vector3_scale(coord.y, b),
-      vector3_scale(coord.z, c)));
+                                   float wfactor, vector3 coord) {
+  return (vector3){
+    (coord.x*a.x + coord.y*b.x + coord.z*c.x)/wfactor,
+    (coord.x*a.y + coord.y*b.y + coord.z*c.y)/wfactor,
+    (coord.x*a.z + coord.y*b.z + coord.z*c.z)/wfactor,
+  };
 }
 
 static vector2 interpolate_vector2(vector2 a, vector2 b, vector2 c,
-                                   vector3 coord) {
-  return vector2_add(
-    vector2_scale(coord.x, a),
-    vector2_add(
-      vector2_scale(coord.y, b),
-      vector2_scale(coord.z, c)));
+                                   float wfactor, vector3 coord) {
+  return (vector2){
+    (coord.x*a.x + coord.y*b.x + coord.z*c.x)/wfactor,
+    (coord.x*a.y + coord.y*b.y + coord.z*c.y)/wfactor,
+  };
 }
 
 static color interpolate_color(color a, color b, color c,
-                               vector3 coord) {
+                               float wfactor, vector3 coord) {
   return (color){
-    coord.x*a.r + coord.y*b.r + coord.z*c.r,
-    coord.x*a.g + coord.y*b.g + coord.z*c.g,
-    coord.x*a.b + coord.y*b.b + coord.z*c.b,
-    coord.x*a.a + coord.y*b.a + coord.z*c.a,
+    (coord.x*a.r + coord.y*b.r + coord.z*c.r)/wfactor,
+    (coord.x*a.g + coord.y*b.g + coord.z*c.g)/wfactor,
+    (coord.x*a.b + coord.y*b.b + coord.z*c.b)/wfactor,
+    (coord.x*a.a + coord.y*b.a + coord.z*c.a)/wfactor,
   };
 }
 
