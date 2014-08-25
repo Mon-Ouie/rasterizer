@@ -239,7 +239,7 @@ static void emit_triangle(renderer *state,
 
         for (int x = max(0, x0); x <= min(x1, state->target->w-1); x++) {
           float s = ((p1.y - p2.y)*(x - p2.x) + (p2.x - p1.x)*(y - p2.y)) / det;
-          float t = ((p2.y - p2.y)*(x - p0.x) + (p0.x - p2.x)*(y - p2.y)) / det;
+          float t = ((p2.y - p0.y)*(x - p2.x) + (p0.x - p2.x)*(y - p2.y)) / det;
           float u = 1 - s - t;
 
           processed_vertex v = interpolate(a, b, c, (vector3){s, t, u});
@@ -263,7 +263,7 @@ static void emit_triangle(renderer *state,
 
         for (int x = max(0, x0); x <= min(x1, state->target->w-1); x++) {
           float s = ((p1.y - p2.y)*(x - p2.x) + (p2.x - p1.x)*(y - p2.y)) / det;
-          float t = ((p2.y - p2.y)*(x - p0.x) + (p0.x - p2.x)*(y - p2.y)) / det;
+          float t = ((p2.y - p0.y)*(x - p2.x) + (p0.x - p2.x)*(y - p2.y)) / det;
           float u = 1 - s - t;
 
           processed_vertex v = interpolate(a, b, c, (vector3){s, t, u});
